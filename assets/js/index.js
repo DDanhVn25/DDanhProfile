@@ -113,7 +113,7 @@
 
     let o = 0;
     $("body").append(`<div id="fui-toast"></div><div class="td-lock-screen"><section class="td-welcome"><div class="medias"><video class="pc item_video" autoplay loop muted playsinline><source src="./assets/video/pc.mp4?v=${c()}" type="video/mp4"></video><video class="mobile item_video" autoplay loop muted playsinline><source src="./assets/video/mb.mp4?v=${c()}" type="video/mp4"></video><div class="date"></div></div><div class="infos"><div class="logo-web-title">
-<img class="logo-ws" src="https://i.pinimg.com/1200x/61/3f/d8/613fd8985fe2e0df04c3259fc83dbcd3.jpg" alt="Sator">
+<img class="logo-ws" src="https://i.pinimg.com/736x/57/6b/36/576b3663dd1c05ff16655ecd0c95217b.jpg" alt="Arom">
 <span class="web-title">${$("html").attr("data-title-loader") || "M\xe0n H\xecnh Kho\xe1"}</span></div><span class="web_desc"></span><div><i class="ri-arrow-down-line close-lockscreen"></i></div></div></section></div>`);
     let a = (n, t) => Math.floor(Math.random() * (t - n + 1)) + n
       , s = n => {
