@@ -1,3 +1,28 @@
+/* --- GIỌNG NÓI CHÀO MỪNG --- */
+const welcomeVoice = new Audio("./assets/music/cam-on.mp3");
+welcomeVoice.volume = 1;
+let voicePlayed = false;
+
+function playWelcomeVoice() {
+    if (voicePlayed) return;
+    voicePlayed = true;                    // chặn phát lặp
+    welcomeVoice.play().catch(() => {
+        voicePlayed = false;               // bị chặn thì chờ lần bấm sau
+    });
+}
+
+// 1) Thử phát ngay khi vào web (một số trình duyệt cho phép)
+playWelcomeVoice();
+
+// 2) Nếu bị chặn, phát ở lần bấm/chạm/gõ phím đầu tiên
+["click", "touchstart", "keydown"].forEach(ev => {
+    document.addEventListener(ev, function handler() {
+        playWelcomeVoice();
+        if (voicePlayed) document.removeEventListener(ev, handler);
+    }, { passive: true });
+});
+/* --- HẾT PHẦN GIỌNG NÓI --- */
+
 !function(n) {
     function t(n, t, e) {
         let i = new Date(Date.now() + 864e5 * e).toUTCString();
@@ -58,58 +83,72 @@
         FuiToast.success("Đã tắt nhạc nền.")
     }),
     /* --- PHẦN XỬ LÝ NHẠC LOFI MỚI --- */
-    $("body").on("click", ".confirm-btn", function() {
-        // Danh sách nhạc Lofi (Bạn có thể thêm link mp3 vào đây)
-        const playlist = [{
-            title: "0 AI NGHĨ - Wxrdie ",
-            url: "https://files.catbox.moe/ayyoc1.mp3"
-        }, {
-            title: "TRỞ VỀ - Wxrdie",
-            url: "https://files.catbox.moe/2wbx32.mp3"
-        }, {
-            title: "Phép Màu (Đàn cá gỗ OST) - MAYDAYs",
-            url: "https://files.catbox.moe/1qfko0.mp3"
-        }, {
-            title: "Pin Dự Phòng - Dương Domic",
-            url: "https://files.catbox.moe/0zudfs.mp3"
-        }, {
-            title: "Không Buông - Hngle",
-            url: "https://files.catbox.moe/amk1s1.mp3"
-        }];
+/* --- PHẦN XỬ LÝ NHẠC --- */
+$("body").on("click", ".confirm-btn", function() {
+    // Chỉ thêm bài có link thật. Bài trống sẽ tự bị bỏ qua.
+    const playlist = [
+        { title: "Em Ngốc Quá - đanh", url: "https://files.catbox.moe/mo7md7.wav" },
 
-        // Chọn ngẫu nhiên 1 bài trong danh sách
-        let randomSong = playlist[Math.floor(Math.random() * playlist.length)];
+        { title: "Có Anh Ở Đây Rồi - đanh", url: "https://files.catbox.moe/gb6pd7.wav" },
 
-        let i = new Audio(randomSong.url);
-        let h = new Promise( (resolve, reject) => {
-            i.play().then( () => {
-                resolve(randomSong);
-            }
-            ).catch(err => {
-                reject("Không thể phát nhạc ngay lúc này.");
-            }
-            );
+        { title: "Vở Kịch Của Em ft Vây Giữ Remix - đanh", url: "https://files.catbox.moe/0e12ao.wav" },
 
-            // Khi hát hết bài thì tự chuyển bài khác (reload lại hàm chọn nhạc)
-            i.addEventListener("ended", function() {
-                // Đơn giản nhất là replay bài đó hoặc thông báo hết bài
-                // Ở phiên bản đơn giản này ta sẽ replay
-                this.currentTime = 0;
-                this.play();
-            });
-        }
-        );
+        { title: "Lời yêu ngây dại REMIX - đanh", url: "https://files.catbox.moe/4vkl49.wav" },
 
-        FuiToast.promise(h, {
-            loading: "Đang tải nhạc Lofi...",
-            success: data => "Đang phát: " + data.title,
-            error: "Có lỗi khi phát nhạc!"
-        }, {
-            isClose: !0
-        });
-        $("#toast-prompt").slideUp("fast");
+        { title: "Để Em Lương Thiện - đanh", url: "https://files.catbox.moe/dba3aq.wav" },
+
+        { title: "Chúng Ta Không Thuộc Về Nhau - đanh", url: "https://files.catbox.moe/jjdit0.wav" },
+
+        { title: "Gia Nhu Anh La Em - đanh", url: "https://files.catbox.moe/rxc2jn.mp3" },
+
+        // Thêm bài khác theo mẫu:
+        // { title: "Tên bài", url: "./assets/music/ten-bai.wav" },
+    ].filter(s => s.url && s.url.trim() !== "");
+
+    if (!playlist.length) {
+        FuiToast.error("Chưa có bài nhạc nào trong playlist!");
+        return;
+    }
+
+    // Dừng nhạc cũ để không bị phát chồng
+    if (window.bgAudio) {
+        window.bgAudio.pause();
+        window.bgAudio = null;
+    }
+
+    const audio = new Audio();
+    audio.preload = "auto";
+    audio.volume = 1;
+    window.bgAudio = audio;
+
+    let index = Math.floor(Math.random() * playlist.length);
+
+    const playSong = (i) => new Promise((resolve, reject) => {
+        const song = playlist[i];
+        audio.src = song.url.trim();
+        audio.load();
+        audio.play()
+            .then(() => resolve(song))
+            .catch(() => reject("Không thể phát nhạc ngay lúc này."));
     });
-    /* --- HẾT PHẦN XỬ LÝ NHẠC --- */
+
+    // Hết bài thì chuyển bài tiếp theo
+    audio.addEventListener("ended", () => {
+        index = (index + 1) % playlist.length;
+        playSong(index)
+            .then(s => FuiToast.success("Đang phát: " + s.title))
+            .catch(() => {});
+    });
+
+    FuiToast.promise(playSong(index), {
+        loading: "Đang tải nhạc...",
+        success: data => "Đang phát: " + data.title,
+        error: "Có lỗi khi phát nhạc!"
+    }, { isClose: !0 });
+
+    $("#toast-prompt").slideUp("fast");
+});
+/* --- HẾT PHẦN XỬ LÝ NHẠC --- */
 
     let o = 0;
     $("body").append(`<div id="fui-toast"></div><div class="td-lock-screen"><section class="td-welcome"><div class="medias"><video class="pc item_video" autoplay loop muted playsinline><source src="./assets/video/pc.mp4?v=${c()}" type="video/mp4"></video><video class="mobile item_video" autoplay loop muted playsinline><source src="./assets/video/mb.mp4?v=${c()}" type="video/mp4"></video><div class="date"></div></div><div class="infos"><div class="logo-web-title">
