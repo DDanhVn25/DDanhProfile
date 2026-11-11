@@ -236,7 +236,7 @@ playWelcomeVoice();
 
     let o = 0;
     $("body").append(`<div id="fui-toast"></div><div class="td-lock-screen"><section class="td-welcome"><div class="medias"><video class="pc item_video" autoplay loop muted playsinline><source src="./assets/video/pc.mp4?v=${c()}" type="video/mp4"></video><video class="mobile item_video" autoplay loop muted playsinline><source src="./assets/video/mb.mp4?v=${c()}" type="video/mp4"></video><div class="date"></div></div><div class="infos"><div class="logo-web-title">
-<img class="logo-ws" src="https://i.pinimg.com/originals/71/68/65/716865fb858791afce54f8727a7ac4ef.png" alt="Arom">
+<img class="logo-ws" src="https://cdn.upanhlaylink.com/i/3BmbgyZf.png" alt="Arom">
 <span class="web-title">${$("html").attr("data-title-loader") || "M\xe0n H\xecnh Kho\xe1"}</span></div><span class="web_desc"></span><div><i class="ri-arrow-down-line close-lockscreen"></i></div></div></section></div>`);
     let a = (n, t) => Math.floor(Math.random() * (t - n + 1)) + n
       , s = n => {
