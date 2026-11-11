@@ -76,79 +76,163 @@ playWelcomeVoice();
     }),
     "close" === e("toast") && $("#toast-prompt").hide(),
     $("body").on("click", ".close-btn", function() {
+        if (window.bgAudio) window.bgAudio.pause();
+        if (window.hideMusicAsk) window.hideMusicAsk();
         $("#toast-prompt").slideUp("fast", function() {
             let n = new Date(Date.now() + 6e5).toUTCString();
             document.cookie = `toast=close; expires=${n}; path=/`
         }),
         FuiToast.success("Đã tắt nhạc nền.")
     }),
-    /* --- PHẦN XỬ LÝ NHẠC LOFI MỚI --- */
-/* --- PHẦN XỬ LÝ NHẠC --- */
-$("body").on("click", ".confirm-btn", function() {
-    // Chỉ thêm bài có link thật. Bài trống sẽ tự bị bỏ qua.
-    const playlist = [
-        { title: "Em Ngốc Quá - đanh", url: "https://files.catbox.moe/mo7md7.wav" },
+    /* --- PHẦN XỬ LÝ NHẠC + HỎI CHUYỂN NHẠC --- */
+    (function () {
+        // ----- DANH SÁCH NHẠC (chỉ thêm bài có link thật) -----
+        const playlist = [
+            { title: "Em Ngốc Quá - đanh", url: "https://files.catbox.moe/mo7md7.wav" },
+            { title: "Có Anh Ở Đây Rồi - đanh", url: "https://files.catbox.moe/gb6pd7.wav" },
+            { title: "Vở Kịch Của Em ft Vây Giữ Remix - đanh", url: "https://files.catbox.moe/0e12ao.wav" },
+            { title: "Lời yêu ngây dại REMIX - đanh", url: "https://files.catbox.moe/4vkl49.wav" },
+            { title: "Để Em Lương Thiện - đanh", url: "https://files.catbox.moe/dba3aq.wav" },
+            { title: "Chúng Ta Không Thuộc Về Nhau - đanh", url: "https://files.catbox.moe/jjdit0.wav" },
+            { title: "Gia Nhu Anh La Em - đanh", url: "https://files.catbox.moe/rxc2jn.mp3" },
+            // Thêm bài khác theo mẫu:
+            // { title: "Tên bài", url: "./assets/music/ten-bai.wav" },
+        ].filter(s => s.url && s.url.trim() !== "");
 
-        { title: "Có Anh Ở Đây Rồi - đanh", url: "https://files.catbox.moe/gb6pd7.wav" },
+        const ASK_AFTER_MS = 8000;     // sau bao lâu thì hỏi "có muốn chuyển nhạc không"
+        const ASK_VISIBLE_MS = 12000;  // khung hỏi tự ẩn sau bao lâu nếu không trả lời
 
-        { title: "Vở Kịch Của Em ft Vây Giữ Remix - đanh", url: "https://files.catbox.moe/0e12ao.wav" },
+        let musicIndex = 0, askTimer = null, hideTimer = null;
 
-        { title: "Lời yêu ngây dại REMIX - đanh", url: "https://files.catbox.moe/4vkl49.wav" },
+        // ----- GIAO DIỆN KHUNG HỎI -----
+        const css = document.createElement("style");
+        css.textContent = `
+        #music-ask{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));
+          z-index:2147483000;max-width:min(300px,calc(100vw - 32px));padding:14px 16px;border-radius:16px;
+          background:rgba(20,22,44,.92);color:#fff;font:500 14px/1.4 system-ui,"Be Vietnam Pro",sans-serif;
+          backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,.35);
+          opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .25s,transform .25s}
+        #music-ask.show{opacity:1;transform:none;pointer-events:auto}
+        #music-ask p{margin:0 0 10px}
+        #music-ask .ma-row{display:flex;gap:8px}
+        #music-ask button{flex:1;border:0;border-radius:10px;padding:9px 10px;font:inherit;font-weight:700;cursor:pointer}
+        #music-ask .ma-yes{background:#b9a7ff;color:#161233}
+        #music-ask .ma-no{background:rgba(255,255,255,.12);color:#fff}
+        #music-ask button:focus-visible,#music-skip:focus-visible{outline:3px solid #fff;outline-offset:2px}
+        #music-skip{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));
+          z-index:2147482999;width:44px;height:44px;border:0;border-radius:50%;cursor:pointer;
+          background:rgba(20,22,44,.85);color:#fff;font-size:18px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
+        #music-skip[hidden]{display:none}
+        @media (prefers-reduced-motion:reduce){#music-ask{transition:none}}`;
+        document.head.appendChild(css);
 
-        { title: "Để Em Lương Thiện - đanh", url: "https://files.catbox.moe/dba3aq.wav" },
+        const box = document.createElement("div");
+        box.id = "music-ask";
+        box.setAttribute("role", "dialog");
+        box.setAttribute("aria-label", "Chuyển nhạc");
+        box.innerHTML = `<p>Bạn có muốn chuyển nhạc không?</p>
+          <div class="ma-row"><button class="ma-yes">Có, chuyển bài</button><button class="ma-no">Không</button></div>`;
+        document.body.appendChild(box);
 
-        { title: "Chúng Ta Không Thuộc Về Nhau - đanh", url: "https://files.catbox.moe/jjdit0.wav" },
+        // Nút nhỏ để hỏi lại bất cứ lúc nào
+        const skipBtn = document.createElement("button");
+        skipBtn.id = "music-skip";
+        skipBtn.hidden = true;
+        skipBtn.title = "Chuyển nhạc";
+        skipBtn.setAttribute("aria-label", "Chuyển nhạc");
+        skipBtn.textContent = "⏭";
+        document.body.appendChild(skipBtn);
 
-        { title: "Gia Nhu Anh La Em - đanh", url: "https://files.catbox.moe/rxc2jn.mp3" },
+        // ----- HÀM ĐIỀU KHIỂN -----
+        function hideAsk() {
+            clearTimeout(hideTimer);
+            box.classList.remove("show");
+            skipBtn.style.visibility = "visible";
+        }
+        function showAsk() {
+            if (!window.bgAudio || window.bgAudio.paused) return;
+            skipBtn.style.visibility = "hidden";
+            box.classList.add("show");
+            clearTimeout(hideTimer);
+            hideTimer = setTimeout(hideAsk, ASK_VISIBLE_MS);
+        }
+        function scheduleAsk() {
+            clearTimeout(askTimer);
+            askTimer = setTimeout(showAsk, ASK_AFTER_MS);
+        }
 
-        // Thêm bài khác theo mẫu:
-        // { title: "Tên bài", url: "./assets/music/ten-bai.wav" },
-    ].filter(s => s.url && s.url.trim() !== "");
+        function playSong(i) {
+            return new Promise((resolve, reject) => {
+                const a = window.bgAudio;
+                a.src = playlist[i].url.trim();
+                a.load();
+                a.play()
+                    .then(() => { musicIndex = i; scheduleAsk(); resolve(playlist[i]); })
+                    .catch(() => reject("Không thể phát nhạc ngay lúc này."));
+            });
+        }
 
-    if (!playlist.length) {
-        FuiToast.error("Chưa có bài nhạc nào trong playlist!");
-        return;
-    }
+        function nextSong() {
+            hideAsk();
+            if (playlist.length < 2) {
+                FuiToast.error("Playlist chỉ có 1 bài nên chưa thể chuyển.");
+                return;
+            }
+            playSong((musicIndex + 1) % playlist.length)
+                .then(s => FuiToast.success("Đang phát: " + s.title))
+                .catch(() => FuiToast.error("Không phát được bài này, thử lại nhé!"));
+        }
 
-    // Dừng nhạc cũ để không bị phát chồng
-    if (window.bgAudio) {
-        window.bgAudio.pause();
-        window.bgAudio = null;
-    }
+        // Sự kiện cho khung hỏi
+        box.querySelector(".ma-yes").addEventListener("click", nextSong);
+        box.querySelector(".ma-no").addEventListener("click", function () {
+            hideAsk();
+            FuiToast.success("Ok, tiếp tục phát bài hiện tại.");
+        });
+        skipBtn.addEventListener("click", showAsk);
 
-    const audio = new Audio();
-    audio.preload = "auto";
-    audio.volume = 1;
-    window.bgAudio = audio;
+        // Cho nút tắt nhạc (.close-btn) gọi được
+        window.hideMusicAsk = function () {
+            clearTimeout(askTimer);
+            hideAsk();
+            skipBtn.hidden = true;
+        };
 
-    let index = Math.floor(Math.random() * playlist.length);
+        // ----- BẤM NÚT BẬT NHẠC -----
+        $("body").on("click", ".confirm-btn", function () {
+            if (!playlist.length) {
+                FuiToast.error("Chưa có bài nhạc nào trong playlist!");
+                return;
+            }
 
-    const playSong = (i) => new Promise((resolve, reject) => {
-        const song = playlist[i];
-        audio.src = song.url.trim();
-        audio.load();
-        audio.play()
-            .then(() => resolve(song))
-            .catch(() => reject("Không thể phát nhạc ngay lúc này."));
-    });
+            // Dừng nhạc cũ để không bị phát chồng
+            if (window.bgAudio) window.bgAudio.pause();
 
-    // Hết bài thì chuyển bài tiếp theo
-    audio.addEventListener("ended", () => {
-        index = (index + 1) % playlist.length;
-        playSong(index)
-            .then(s => FuiToast.success("Đang phát: " + s.title))
-            .catch(() => {});
-    });
+            const audio = new Audio();
+            audio.preload = "auto";
+            audio.volume = 1;
+            window.bgAudio = audio;
 
-    FuiToast.promise(playSong(index), {
-        loading: "Đang tải nhạc...",
-        success: data => "Đang phát: " + data.title,
-        error: "Có lỗi khi phát nhạc!"
-    }, { isClose: !0 });
+            // Hết bài thì tự sang bài kế tiếp
+            audio.addEventListener("ended", function () {
+                hideAsk();
+                playSong((musicIndex + 1) % playlist.length)
+                    .then(s => FuiToast.success("Đang phát: " + s.title))
+                    .catch(() => {});
+            });
 
-    $("#toast-prompt").slideUp("fast");
-});
-/* --- HẾT PHẦN XỬ LÝ NHẠC --- */
+            const start = Math.floor(Math.random() * playlist.length);
+            FuiToast.promise(playSong(start), {
+                loading: "Đang tải nhạc...",
+                success: data => "Đang phát: " + data.title,
+                error: "Có lỗi khi phát nhạc!"
+            }, { isClose: !0 });
+
+            skipBtn.hidden = false;
+            $("#toast-prompt").slideUp("fast");
+        });
+    })();
+    /* --- HẾT PHẦN XỬ LÝ NHẠC --- */
 
     let o = 0;
     $("body").append(`<div id="fui-toast"></div><div class="td-lock-screen"><section class="td-welcome"><div class="medias"><video class="pc item_video" autoplay loop muted playsinline><source src="./assets/video/pc.mp4?v=${c()}" type="video/mp4"></video><video class="mobile item_video" autoplay loop muted playsinline><source src="./assets/video/mb.mp4?v=${c()}" type="video/mp4"></video><div class="date"></div></div><div class="infos"><div class="logo-web-title">
@@ -543,4 +627,3 @@ $("body").on("click", ".confirm-btn", function() {
         }
     })
 }();
-
