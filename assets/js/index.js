@@ -118,6 +118,7 @@ playWelcomeVoice();
             if (shown) return;
             shown = true;
             var msgs = buildGreeting();
+            msgs.splice(2, 0, "🎧 Đừng quên đeo tai nghe để thưởng thức âm nhạc trọn vẹn nhất nhé!");
             var stack = document.createElement("div");
             stack.id = "greet-stack";
             stack.setAttribute("role", "status");
@@ -243,21 +244,19 @@ playWelcomeVoice();
 
             { title: "Gia Nhu Anh La Em - đanh", url: "https://files.catbox.moe/rxc2jn.mp3" },
 
-            { title: "HISSTORY - đanh", url: "https://files.catbox.moe/4an00x.mp3" },
+            { title: "HISSTORY - nhạc ma", url: "https://d.uguu.se/WnJECYRt.mp3" },
 
             { title: " Yêu Em Rất Nhiều - đanh", url: "https://files.catbox.moe/iefwr8.mp3" },
             
-            { title: " Nỏ Nhớ Tên Nhạc :)) ", url: "https://files.catbox.moe/kcq2dn.mp3" },
+            { title: " Nỏ Nhớ Tên Nhạc :)) ", url: "https://d.uguu.se/THQQBHEQ.mp3" },
 
-            { title: " Đừng Quên Tên Anh - đanh ", url: "https://files.catbox.moe/oe1xvu.mp3" },
+            { title: " Đừng Quên Tên Anh - đanh ", url: "https://h.uguu.se/OvWnqWmY.mp3" },
 
-            { title: " Bông Hoa Đẹp Nhất - đanh ", url: "https://files.catbox.moe/z6koa7.mp3" },
+            { title: " Bông Hoa Đẹp Nhất - đanh ", url: "https://n.uguu.se/osdUloKy.mp3" },
 
-            { title: " Bóng Phù Hoa Siêu Cháy - đanh ", url: "https://files.catbox.moe/326yg1.mp3" },
+            { title: " Bóng Phù Hoa Siêu Cháy - đanh ", url: "https://n.uguu.se/cJKREBnx.mp3" },
 
-            { title: " Bóng Phù Hoa Siêu Cháy - đanh ", url: "https://files.catbox.moe/326yg1.mp3" },
-
-            { title: " Ngày Nào Đôi Mươi - đanh ", url: "https://files.catbox.moe/oxbqzw.mp3" },
+            { title: " Ngày Nào Đôi Mươi - đanh ", url: "https://n.uguu.se/gxlwspau.mp3" },
 
             // Thêm bài khác theo mẫu:
             // { title: "Tên bài", url: "./assets/music/ten-bai.wav" },
