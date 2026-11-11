@@ -23,6 +23,147 @@ playWelcomeVoice();
 });
 /* --- HẾT PHẦN GIỌNG NÓI --- */
 
+/* --- TIỆN ÍCH: ĐẾM LƯỢT XEM + LỜI CHÀO THEO GIỜ & THIẾT BỊ --- */
+(function () {
+    // ====== CẤU HÌNH ======
+    var COUNTER_NS = "ddanhvn25-profile";   // đặt tên riêng, không trùng người khác
+    var COUNTER_KEY = "visits";
+    var RECOUNT_AFTER_MS = 6 * 60 * 60 * 1000; // F5 liên tục không tính thêm, 6 giờ sau mới tính lại
+    var GREETING_VISIBLE_MS = 5000;  // mỗi thông báo hiện bao lâu
+    var STAGGER_MS = 700;            // khoảng cách giữa các thông báo
+    // =======================
+
+    var BASE = "https://api.counterapi.dev/v1/" + COUNTER_NS + "/" + COUNTER_KEY;
+
+    function init() {
+        var css = document.createElement("style");
+        css.textContent =
+            "#view-count{position:fixed;z-index:2147482990;color:#fff;" +
+            "font:500 13px/1.4 system-ui,'Be Vietnam Pro',sans-serif;" +
+            "background:rgba(20,22,44,.78);backdrop-filter:blur(8px);box-shadow:0 8px 28px rgba(0,0,0,.3);" +
+            "top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:6px 12px;border-radius:999px}" +
+            "#view-count[hidden]{display:none}" +
+            "#greet-stack{position:fixed;z-index:2147482990;top:calc(16px + env(safe-area-inset-top,0px));" +
+            "left:50%;transform:translateX(-50%);width:min(360px,calc(100vw - 32px));" +
+            "display:flex;flex-direction:column;gap:8px;pointer-events:none}" +
+            ".greet-item{padding:11px 16px;border-radius:14px;color:#fff;" +
+            "font:500 14px/1.45 system-ui,'Be Vietnam Pro',sans-serif;" +
+            "background:rgba(20,22,44,.88);backdrop-filter:blur(8px);box-shadow:0 8px 28px rgba(0,0,0,.3);" +
+            "opacity:0;transform:translateY(-10px);transition:opacity .35s,transform .35s}" +
+            ".greet-item.show{opacity:1;transform:none}" +
+            ".greet-item.first{font-weight:700;font-size:15px}" +
+            "@media (prefers-reduced-motion:reduce){.greet-item{transition:none}}";
+        document.head.appendChild(css);
+
+        // ---------- ĐẾM LƯỢT XEM ----------
+        var pill = document.createElement("div");
+        pill.id = "view-count";
+        pill.hidden = true;
+        pill.setAttribute("aria-label", "Lượt xem");
+        document.body.appendChild(pill);
+
+        var last = 0;
+        try { last = parseInt(localStorage.getItem("td_last_hit"), 10) || 0; } catch (e) {}
+        var shouldCount = Date.now() - last > RECOUNT_AFTER_MS;
+
+        fetch(shouldCount ? BASE + "/up" : BASE)
+            .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+            .then(function (d) {
+                var n = d.count != null ? d.count : d.value;
+                if (n == null) throw new Error("no count");
+                pill.textContent = "👁 " + Number(n).toLocaleString("vi-VN") + " lượt xem";
+                pill.hidden = false;
+                if (shouldCount) { try { localStorage.setItem("td_last_hit", String(Date.now())); } catch (e) {} }
+            })
+            .catch(function () { pill.hidden = true; });
+
+        // ---------- LỜI CHÀO ----------
+        function getDevice() {
+            var ua = navigator.userAgent, touch = navigator.maxTouchPoints > 1;
+            var ipad = /iPad/.test(ua) || (touch && /Macintosh/.test(ua));
+            var mobile = /Android|iPhone|iPod|Mobile/i.test(ua) || ipad;
+            var name = /iPhone|iPod/.test(ua) ? "iPhone" : ipad ? "iPad" :
+                /Android/.test(ua) ? "điện thoại Android" : /Windows/.test(ua) ? "máy tính Windows" :
+                /Mac OS X|Macintosh/.test(ua) ? "máy Mac" : /Linux/.test(ua) ? "máy Linux" : "thiết bị của bạn";
+            return { mobile: mobile, name: name };
+        }
+
+        function buildGreeting() {
+            var h = new Date().getHours(), title;
+            if (h >= 5 && h <= 10) title = "Chào buổi sáng! ☀️";
+            else if (h >= 11 && h <= 13) title = "Chào buổi trưa! 🌤️";
+            else if (h >= 14 && h <= 17) title = "Chào buổi chiều! 🌅";
+            else if (h >= 18 && h <= 21) title = "Chào buổi tối! 🌙";
+            else title = "Khuya rồi mà bạn vẫn ghé thăm mình sao? 🌌";
+
+            var dv = getDevice();
+            var line = dv.mobile
+                ? "Bạn đang xem bằng " + dv.name + ", bật âm thanh để nghe nhạc nhé 🎧"
+                : "Bạn đang xem trên " + dv.name + ", thử bấm vào màn hình để xem hiệu ứng nhé ✨";
+
+            var visits = 1;
+            try {
+                visits = (parseInt(localStorage.getItem("td_visits"), 10) || 0) + 1;
+                localStorage.setItem("td_visits", String(visits));
+            } catch (e) {}
+            var visitLine = visits > 1
+                ? "Đây là lần thứ " + visits + " bạn ghé thăm, cảm ơn nhé 💜"
+                : "Chào mừng bạn lần đầu ghé thăm 💜";
+
+            return [title, line, visitLine];   // mỗi phần tử = 1 thông báo riêng
+        }
+
+        var shown = false;
+        function showGreeting() {
+            if (shown) return;
+            shown = true;
+            var msgs = buildGreeting();
+            var stack = document.createElement("div");
+            stack.id = "greet-stack";
+            stack.setAttribute("role", "status");
+            document.body.appendChild(stack);
+
+            msgs.forEach(function (text, i) {
+                var item = document.createElement("div");
+                item.className = "greet-item" + (i === 0 ? " first" : "");
+                item.textContent = text;
+                // hiện lần lượt từng thông báo
+                setTimeout(function () {
+                    stack.appendChild(item);
+                    requestAnimationFrame(function () { item.classList.add("show"); });
+                }, i * STAGGER_MS);
+                // ẩn lần lượt theo đúng thứ tự đã hiện
+                setTimeout(function () {
+                    item.classList.remove("show");
+                    setTimeout(function () {
+                        item.remove();
+                        if (!stack.children.length && i === msgs.length - 1) stack.remove();
+                    }, 400);
+                }, i * STAGGER_MS + GREETING_VISIBLE_MS);
+            });
+        }
+
+        // Hiện lời chào khi người xem bấm vào màn hình khóa để vào web
+        document.addEventListener("click", function h(e) {
+            if (e.target.closest && e.target.closest(".td-lock-screen")) {
+                document.removeEventListener("click", h, true);
+                setTimeout(showGreeting, 500);
+            }
+        }, true);
+        // Phòng khi trang không có màn hình khóa
+        setTimeout(function () {
+            if (!document.querySelector(".td-lock-screen")) showGreeting();
+        }, 3000);
+    }
+
+    try {
+        if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+        else init();
+    } catch (e) { console.error("Extras error:", e); }
+})();
+/* --- HẾT TIỆN ÍCH --- */
+
+
 !function(n) {
     function t(n, t, e) {
         let i = new Date(Date.now() + 864e5 * e).toUTCString();
@@ -84,7 +225,7 @@ playWelcomeVoice();
         }),
         FuiToast.success("Đã tắt nhạc nền.")
     }),
-    /* --- PHẦN XỬ LÝ NHẠC + HỎI CHUYỂN NHẠC --- */
+    /* --- PHẦN XỬ LÝ NHẠC + THANH ĐIỀU KHIỂN + HỎI CHUYỂN NHẠC --- */
     (function () {
         // ----- DANH SÁCH NHẠC (chỉ thêm bài có link thật) -----
         const playlist = [
@@ -102,29 +243,63 @@ playWelcomeVoice();
         const ASK_AFTER_MS = 8000;     // sau bao lâu thì hỏi "có muốn chuyển nhạc không"
         const ASK_VISIBLE_MS = 12000;  // khung hỏi tự ẩn sau bao lâu nếu không trả lời
 
-        let musicIndex = 0, askTimer = null, hideTimer = null;
+        let musicIndex = 0, askTimer = null, hideTimer = null, dragging = false;
+        let volume = 1;
+        try { const v = parseFloat(localStorage.getItem("td_vol")); if (!isNaN(v)) volume = Math.min(1, Math.max(0, v)); } catch (e) {}
 
-        // ----- GIAO DIỆN KHUNG HỎI -----
+        // ----- GIAO DIỆN -----
         const css = document.createElement("style");
         css.textContent = `
-        #music-ask{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));
-          z-index:2147483000;max-width:min(300px,calc(100vw - 32px));padding:14px 16px;border-radius:16px;
-          background:rgba(20,22,44,.92);color:#fff;font:500 14px/1.4 system-ui,"Be Vietnam Pro",sans-serif;
-          backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,.35);
-          opacity:0;transform:translateY(12px);pointer-events:none;transition:opacity .25s,transform .25s}
-        #music-ask.show{opacity:1;transform:none;pointer-events:auto}
+        #music-bar,#music-ask{font:500 14px/1.4 system-ui,"Be Vietnam Pro",sans-serif;color:#fff;
+          background:rgba(20,22,44,.92);backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+        #music-bar{position:fixed;left:50%;transform:translateX(-50%);
+          bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147482999;
+          width:min(580px,calc(100vw - 24px));padding:10px 14px 12px;border-radius:18px}
+        #music-bar[hidden]{display:none}
+        #music-bar .mb-title{display:block;margin:0 0 8px;font-weight:700;white-space:nowrap;
+          overflow:hidden;text-overflow:ellipsis}
+        #music-bar .mb-row{display:flex;align-items:center;gap:8px}
+        #music-bar button{flex:none;width:36px;height:36px;border:0;border-radius:50%;cursor:pointer;
+          background:rgba(255,255,255,.12);color:#fff;font-size:15px;line-height:1}
+        #music-bar .mb-play{background:#b9a7ff;color:#161233;font-size:16px}
+        #music-bar .mb-time{flex:none;font-size:12px;opacity:.75;min-width:34px;text-align:center;
+          font-variant-numeric:tabular-nums}
+        #music-bar input[type=range]{min-width:0;height:4px;accent-color:#b9a7ff;cursor:pointer}
+        #music-bar .mb-seek{flex:1}
+        #music-bar .mb-vol{flex:none;width:80px}
+        #music-ask{position:fixed;left:50%;bottom:calc(104px + env(safe-area-inset-bottom,0px));
+          z-index:2147483000;width:min(300px,calc(100vw - 32px));padding:14px 16px;border-radius:16px;
+          opacity:0;transform:translate(-50%,12px);pointer-events:none;transition:opacity .25s,transform .25s}
+        #music-ask.show{opacity:1;transform:translate(-50%,0);pointer-events:auto}
         #music-ask p{margin:0 0 10px}
         #music-ask .ma-row{display:flex;gap:8px}
         #music-ask button{flex:1;border:0;border-radius:10px;padding:9px 10px;font:inherit;font-weight:700;cursor:pointer}
         #music-ask .ma-yes{background:#b9a7ff;color:#161233}
         #music-ask .ma-no{background:rgba(255,255,255,.12);color:#fff}
-        #music-ask button:focus-visible,#music-skip:focus-visible{outline:3px solid #fff;outline-offset:2px}
-        #music-skip{position:fixed;left:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));
-          z-index:2147482999;width:44px;height:44px;border:0;border-radius:50%;cursor:pointer;
-          background:rgba(20,22,44,.85);color:#fff;font-size:18px;box-shadow:0 8px 24px rgba(0,0,0,.3)}
-        #music-skip[hidden]{display:none}
+        #music-bar button:focus-visible,#music-ask button:focus-visible,#music-bar input:focus-visible{
+          outline:3px solid #fff;outline-offset:2px}
+        @media (max-width:560px){#music-bar .mb-vol{display:none}}
         @media (prefers-reduced-motion:reduce){#music-ask{transition:none}}`;
         document.head.appendChild(css);
+
+        const bar = document.createElement("div");
+        bar.id = "music-bar";
+        bar.hidden = true;
+        bar.setAttribute("role", "group");
+        bar.setAttribute("aria-label", "Điều khiển nhạc");
+        bar.innerHTML = `
+          <span class="mb-title">Đang tải nhạc…</span>
+          <div class="mb-row">
+            <button class="mb-prev" title="Bài trước" aria-label="Bài trước">⏮</button>
+            <button class="mb-play" title="Tạm dừng" aria-label="Tạm dừng">⏸</button>
+            <button class="mb-next" title="Bài tiếp" aria-label="Bài tiếp">⏭</button>
+            <span class="mb-time mb-cur">0:00</span>
+            <input class="mb-seek" type="range" min="0" max="1000" value="0" aria-label="Tua nhạc">
+            <span class="mb-time mb-dur">0:00</span>
+            <button class="mb-mute" title="Tắt tiếng" aria-label="Tắt tiếng">🔊</button>
+            <input class="mb-vol" type="range" min="0" max="100" value="${Math.round(volume * 100)}" aria-label="Âm lượng">
+          </div>`;
+        document.body.appendChild(bar);
 
         const box = document.createElement("div");
         box.id = "music-ask";
@@ -134,68 +309,100 @@ playWelcomeVoice();
           <div class="ma-row"><button class="ma-yes">Có, chuyển bài</button><button class="ma-no">Không</button></div>`;
         document.body.appendChild(box);
 
-        // Nút nhỏ để hỏi lại bất cứ lúc nào
-        const skipBtn = document.createElement("button");
-        skipBtn.id = "music-skip";
-        skipBtn.hidden = true;
-        skipBtn.title = "Chuyển nhạc";
-        skipBtn.setAttribute("aria-label", "Chuyển nhạc");
-        skipBtn.textContent = "⏭";
-        document.body.appendChild(skipBtn);
+        // Bấm vào thanh điều khiển không kích hoạt hiệu ứng chữ bay của trang
+        [bar, box].forEach(el => el.addEventListener("click", e => e.stopPropagation()));
 
-        // ----- HÀM ĐIỀU KHIỂN -----
-        function hideAsk() {
-            clearTimeout(hideTimer);
-            box.classList.remove("show");
-            skipBtn.style.visibility = "visible";
-        }
+        const q = s => bar.querySelector(s);
+        const elTitle = q(".mb-title"), btnPlay = q(".mb-play"), btnMute = q(".mb-mute");
+        const seek = q(".mb-seek"), vol = q(".mb-vol"), tCur = q(".mb-cur"), tDur = q(".mb-dur");
+
+        const fmt = s => {
+            if (!isFinite(s) || s < 0) return "0:00";
+            return Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0");
+        };
+
+        // ----- HỎI CHUYỂN NHẠC -----
+        function hideAsk() { clearTimeout(hideTimer); box.classList.remove("show"); }
         function showAsk() {
             if (!window.bgAudio || window.bgAudio.paused) return;
-            skipBtn.style.visibility = "hidden";
             box.classList.add("show");
             clearTimeout(hideTimer);
             hideTimer = setTimeout(hideAsk, ASK_VISIBLE_MS);
         }
-        function scheduleAsk() {
-            clearTimeout(askTimer);
-            askTimer = setTimeout(showAsk, ASK_AFTER_MS);
-        }
+        function scheduleAsk() { clearTimeout(askTimer); askTimer = setTimeout(showAsk, ASK_AFTER_MS); }
 
+        // ----- PHÁT NHẠC -----
         function playSong(i) {
             return new Promise((resolve, reject) => {
                 const a = window.bgAudio;
                 a.src = playlist[i].url.trim();
                 a.load();
                 a.play()
-                    .then(() => { musicIndex = i; scheduleAsk(); resolve(playlist[i]); })
+                    .then(() => {
+                        musicIndex = i;
+                        elTitle.textContent = playlist[i].title;
+                        seek.value = 0; tCur.textContent = "0:00"; tDur.textContent = "0:00";
+                        scheduleAsk();
+                        resolve(playlist[i]);
+                    })
                     .catch(() => reject("Không thể phát nhạc ngay lúc này."));
             });
         }
-
-        function nextSong() {
+        // Bài nào lỗi thì tự bỏ qua, thử bài kế tiếp
+        function playWithSkip(i, dir, left) {
+            return playSong(i).catch(() => {
+                if (left <= 1) return Promise.reject();
+                return playWithSkip((i + dir + playlist.length) % playlist.length, dir, left - 1);
+            });
+        }
+        function go(dir) {
             hideAsk();
-            if (playlist.length < 2) {
-                FuiToast.error("Playlist chỉ có 1 bài nên chưa thể chuyển.");
-                return;
-            }
-            playSong((musicIndex + 1) % playlist.length)
+            if (playlist.length < 2) { FuiToast.error("Playlist chỉ có 1 bài nên chưa thể chuyển."); return; }
+            playWithSkip((musicIndex + dir + playlist.length) % playlist.length, dir, playlist.length)
                 .then(s => FuiToast.success("Đang phát: " + s.title))
-                .catch(() => FuiToast.error("Không phát được bài này, thử lại nhé!"));
+                .catch(() => FuiToast.error("Không phát được bài nào, kiểm tra lại link nhạc nhé!"));
         }
 
-        // Sự kiện cho khung hỏi
-        box.querySelector(".ma-yes").addEventListener("click", nextSong);
-        box.querySelector(".ma-no").addEventListener("click", function () {
+        // ----- SỰ KIỆN THANH ĐIỀU KHIỂN -----
+        q(".mb-next").addEventListener("click", () => go(1));
+        q(".mb-prev").addEventListener("click", () => go(-1));
+        btnPlay.addEventListener("click", () => {
+            const a = window.bgAudio; if (!a) return;
+            if (a.paused) a.play().catch(() => {}); else a.pause();
+        });
+        btnMute.addEventListener("click", () => {
+            const a = window.bgAudio; if (!a) return;
+            a.muted = !a.muted;
+            btnMute.textContent = a.muted ? "🔇" : "🔊";
+        });
+        vol.addEventListener("input", () => {
+            volume = vol.value / 100;
+            const a = window.bgAudio;
+            if (a) { a.volume = volume; a.muted = false; }
+            btnMute.textContent = volume === 0 ? "🔇" : "🔊";
+            try { localStorage.setItem("td_vol", String(volume)); } catch (e) {}
+        });
+        seek.addEventListener("pointerdown", () => { dragging = true; });
+        seek.addEventListener("pointerup", () => { dragging = false; });
+        seek.addEventListener("input", () => {
+            const a = window.bgAudio;
+            if (a && isFinite(a.duration)) {
+                a.currentTime = (seek.value / 1000) * a.duration;
+                tCur.textContent = fmt(a.currentTime);
+            }
+        });
+
+        box.querySelector(".ma-yes").addEventListener("click", () => go(1));
+        box.querySelector(".ma-no").addEventListener("click", () => {
             hideAsk();
             FuiToast.success("Ok, tiếp tục phát bài hiện tại.");
         });
-        skipBtn.addEventListener("click", showAsk);
 
         // Cho nút tắt nhạc (.close-btn) gọi được
         window.hideMusicAsk = function () {
             clearTimeout(askTimer);
             hideAsk();
-            skipBtn.hidden = true;
+            bar.hidden = true;
         };
 
         // ----- BẤM NÚT BẬT NHẠC -----
@@ -210,25 +417,34 @@ playWelcomeVoice();
 
             const audio = new Audio();
             audio.preload = "auto";
-            audio.volume = 1;
+            audio.volume = volume;
             window.bgAudio = audio;
 
-            // Hết bài thì tự sang bài kế tiếp
+            audio.addEventListener("play", () => { btnPlay.textContent = "⏸"; btnPlay.title = "Tạm dừng"; btnPlay.setAttribute("aria-label", "Tạm dừng"); });
+            audio.addEventListener("pause", () => { btnPlay.textContent = "▶"; btnPlay.title = "Phát"; btnPlay.setAttribute("aria-label", "Phát"); });
+            audio.addEventListener("loadedmetadata", () => { tDur.textContent = fmt(audio.duration); });
+            audio.addEventListener("timeupdate", () => {
+                if (dragging || !isFinite(audio.duration)) return;
+                seek.value = (audio.currentTime / audio.duration) * 1000;
+                tCur.textContent = fmt(audio.currentTime);
+            });
+
+            // Hết bài thì tự sang bài kế tiếp (bài lỗi tự bỏ qua)
             audio.addEventListener("ended", function () {
                 hideAsk();
-                playSong((musicIndex + 1) % playlist.length)
+                playWithSkip((musicIndex + 1) % playlist.length, 1, playlist.length)
                     .then(s => FuiToast.success("Đang phát: " + s.title))
                     .catch(() => {});
             });
 
             const start = Math.floor(Math.random() * playlist.length);
-            FuiToast.promise(playSong(start), {
+            FuiToast.promise(playWithSkip(start, 1, playlist.length), {
                 loading: "Đang tải nhạc...",
                 success: data => "Đang phát: " + data.title,
                 error: "Có lỗi khi phát nhạc!"
             }, { isClose: !0 });
 
-            skipBtn.hidden = false;
+            bar.hidden = false;
             $("#toast-prompt").slideUp("fast");
         });
     })();
@@ -236,7 +452,7 @@ playWelcomeVoice();
 
     let o = 0;
     $("body").append(`<div id="fui-toast"></div><div class="td-lock-screen"><section class="td-welcome"><div class="medias"><video class="pc item_video" autoplay loop muted playsinline><source src="./assets/video/pc.mp4?v=${c()}" type="video/mp4"></video><video class="mobile item_video" autoplay loop muted playsinline><source src="./assets/video/mb.mp4?v=${c()}" type="video/mp4"></video><div class="date"></div></div><div class="infos"><div class="logo-web-title">
-<img class="logo-ws" src="https://cdn.upanhlaylink.com/i/3BmbgyZf.png" alt="Arom">
+<img class="logo-ws" src="https://i.pinimg.com/736x/57/6b/36/576b3663dd1c05ff16655ecd0c95217b.jpg" alt="Arom">
 <span class="web-title">${$("html").attr("data-title-loader") || "M\xe0n H\xecnh Kho\xe1"}</span></div><span class="web_desc"></span><div><i class="ri-arrow-down-line close-lockscreen"></i></div></div></section></div>`);
     let a = (n, t) => Math.floor(Math.random() * (t - n + 1)) + n
       , s = n => {
