@@ -89,13 +89,17 @@ playWelcomeVoice();
         }
 
         function buildGreeting() {
-            var h = new Date().getHours(), title;
-            if (h >= 5 && h <= 10) title = "Chào buổi sáng! ☀️";
-            else if (h >= 11 && h <= 13) title = "Chào buổi trưa! 🌤️";
-            else if (h >= 14 && h <= 17) title = "Chào buổi chiều! 🌅";
-            else if (h >= 18 && h <= 21) title = "Chào buổi tối! 🌙";
-            else title = "Khuya rồi mà bạn vẫn ghé thăm mình sao? 🌌";
+    var h = new Date().getHours(), title;
+    
+        if (h >= 5 && h <= 8) title = "Chào buổi sáng! ☀️";
+        else if (h >= 9 && h <= 10) title = "Nhớ lọ đầy đủ nhé 🐿️🍶"; 
+        else if (h >= 11 && h <= 12) title = "Chào buổi trưa! 🌤️";
+        else if (h >= 13 && h <= 13) title = "Đừng quên tên đanh!"; 
+        else if (h >= 14 && h <= 17) title = "Chào buổi chiều! 🌅";
+        else if (h >= 18 && h <= 21) title = "Chào buổi tối! 🌙";
+        else title = "Khuya rồi mà bạn vẫn ghé thăm mình sao? 🌌";
 
+        
             var dv = getDevice();
             var line = dv.mobile
                 ? "Bạn đang xem bằng " + dv.name + ", bật âm thanh để nghe nhạc nhé 🎧"
