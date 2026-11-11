@@ -51,8 +51,8 @@ try {
         // ---------- GIAO DIỆN ----------
         var css = document.createElement("style");
         css.textContent = `
-        #nq-card,#nq-modal .nq-panel{font:500 13px/1.45 system-ui,"Be Vietnam Pro",sans-serif;color:#fff;
-          background:rgba(20,22,44,.88);backdrop-filter:blur(10px);box-shadow:0 8px 28px rgba(0,0,0,.3)}
+        #nq-card,#nq-modal .nq-panel{font:500 13px/1.45 system-ui,"Be Vietnam Pro",sans-serif;color:var(--nq-fg);
+          background:var(--nq-bg);backdrop-filter:blur(10px);box-shadow:var(--nq-shadow)}
         #nq-card{position:fixed;z-index:2147482990;left:12px;top:calc(52px + env(safe-area-inset-top,0px));
           width:min(240px,calc(100vw - 24px));padding:10px 12px;border-radius:16px;
           opacity:0;transform:translateY(-8px);transition:opacity .35s,transform .35s}
@@ -60,58 +60,58 @@ try {
         #nq-card[hidden]{display:none}
         #nq-card .nq-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
         #nq-card .nq-head b{font-size:12px;letter-spacing:.04em;text-transform:uppercase;opacity:.75}
-        #nq-card .nq-toggle{border:0;background:rgba(255,255,255,.12);color:#fff;width:24px;height:24px;
+        #nq-card .nq-toggle{border:0;background:var(--nq-soft);color:var(--nq-fg);width:24px;height:24px;
           border-radius:50%;cursor:pointer;line-height:1}
         #nq-card.min .nq-body{display:none}
         #nq-card .nq-row{display:flex;gap:9px;align-items:center;margin-top:9px}
         #nq-card .nq-row[hidden]{display:none}
         #nq-card .nq-ico{flex:none;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;
-          background:rgba(185,167,255,.2);font-size:15px}
+          background:var(--nq-accent-soft);font-size:15px}
         #nq-card .nq-txt{min-width:0}
         #nq-card .nq-lbl{display:block;font-size:11px;opacity:.65}
         #nq-card .nq-val{display:block;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         #nq-card .nq-sub{display:block;font-size:12px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
         #nq-card .nq-eq{display:inline-flex;gap:2px;align-items:flex-end;height:11px;margin-left:6px;vertical-align:baseline}
-        #nq-card .nq-eq i{width:3px;height:100%;background:#b9a7ff;border-radius:2px;transform-origin:bottom;
+        #nq-card .nq-eq i{width:3px;height:100%;background:var(--nq-accent);border-radius:2px;transform-origin:bottom;
           animation:nq-eq 0.9s ease-in-out infinite}
         #nq-card .nq-eq i:nth-child(2){animation-delay:.2s}
         #nq-card .nq-eq i:nth-child(3){animation-delay:.4s}
         #nq-card .nq-eq.off i{animation:none;transform:scaleY(.3)}
         @keyframes nq-eq{0%,100%{transform:scaleY(.25)}50%{transform:scaleY(1)}}
         #nq-card .nq-ask{margin-top:11px;width:100%;border:0;border-radius:10px;padding:9px 10px;cursor:pointer;
-          font:inherit;font-weight:700;background:#b9a7ff;color:#161233}
-
+          font:inherit;font-weight:700;background:var(--nq-accent);color:var(--nq-accent-fg)}
+ 
         #nq-modal{position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;
-          padding:16px;background:rgba(8,9,20,.6)}
+          padding:16px;background:var(--nq-overlay)}
         #nq-modal.open{display:flex}
         #nq-modal .nq-panel{width:min(480px,100%);max-height:min(640px,calc(100vh - 32px));display:flex;
-          flex-direction:column;border-radius:20px;background:rgba(20,22,44,.97);padding:16px}
+          flex-direction:column;border-radius:20px;background:var(--nq-bg-strong);padding:16px}
         #nq-modal .nq-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
         #nq-modal h2{margin:0;font-size:17px}
-        #nq-modal .nq-close{border:0;background:rgba(255,255,255,.12);color:#fff;width:32px;height:32px;
+        #nq-modal .nq-close{border:0;background:var(--nq-soft);color:var(--nq-fg);width:32px;height:32px;
           border-radius:50%;cursor:pointer;font-size:14px}
         #nq-modal .nq-hint{margin:0 0 10px;font-size:12px;opacity:.7}
         #nq-modal textarea{width:100%;box-sizing:border-box;min-height:84px;resize:vertical;border-radius:12px;
-          border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;padding:10px 12px;
+          border:1px solid var(--nq-line);background:var(--nq-item);color:var(--nq-fg);padding:10px 12px;
           font:inherit;font-size:14px}
-        #nq-modal textarea::placeholder{color:rgba(255,255,255,.45)}
+        #nq-modal textarea::placeholder{color:var(--nq-placeholder)}
         #nq-modal .nq-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
         #nq-modal .nq-count{font-size:12px;opacity:.65;font-variant-numeric:tabular-nums}
         #nq-modal .nq-send{border:0;border-radius:10px;padding:9px 16px;cursor:pointer;font:inherit;font-weight:700;
-          background:#b9a7ff;color:#161233}
+          background:var(--nq-accent);color:var(--nq-accent-fg)}
         #nq-modal .nq-send:disabled{opacity:.5;cursor:not-allowed}
         #nq-modal .nq-msg{min-height:18px;margin:8px 0 0;font-size:12.5px}
-        #nq-modal .nq-msg.err{color:#ff9aa8}
+        #nq-modal .nq-msg.err{color:var(--nq-err)}
         #nq-modal .nq-hp{position:absolute;left:-9999px;width:1px;height:1px;opacity:0}
         #nq-modal .nq-list{margin-top:10px;overflow:auto;display:flex;flex-direction:column;gap:10px;
-          padding-right:2px;border-top:1px solid rgba(255,255,255,.12);padding-top:12px}
-        #nq-modal .nq-item{border-radius:12px;background:rgba(255,255,255,.06);padding:10px 12px}
+          padding-right:2px;border-top:1px solid var(--nq-line);padding-top:12px}
+        #nq-modal .nq-item{border-radius:12px;background:var(--nq-item);padding:10px 12px}
         #nq-modal .nq-q{margin:0;font-weight:700;word-break:break-word}
         #nq-modal .nq-a{margin:6px 0 0;opacity:.92;word-break:break-word}
         #nq-modal .nq-time{display:block;margin-top:6px;font-size:11px;opacity:.55}
         #nq-modal .nq-empty{opacity:.6;text-align:center;padding:8px 0}
         #nq-card button:focus-visible,#nq-modal button:focus-visible,#nq-modal textarea:focus-visible{
-          outline:3px solid #fff;outline-offset:2px}
+          outline:3px solid var(--nq-focus);outline-offset:2px}
         @media (prefers-reduced-motion:reduce){#nq-card{transition:none}#nq-card .nq-eq i{animation:none}}`;
         document.head.appendChild(css);
 

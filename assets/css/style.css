@@ -15,7 +15,7 @@ body.loading {
 
 html {
     font-family: Satoshi, sans-serif;
-}
+}htm
 
 html.dark {
     color-scheme: dark;
@@ -796,4 +796,34 @@ html:not(.dark) .close-btn {
 #toast-prompt button,
 #toast-prompt span {
     margin-left: auto;
+}
+
+/* ===== Biến màu cho widget JS: lấy từ theme của trang ===== */
+:root {
+  --nq-bg: hsl(var(--background) / .9);
+  --nq-bg-strong: hsl(var(--background) / .98);
+  --nq-bar: hsl(var(--background) / .94);
+  --nq-pill: hsl(var(--background) / .85);
+  --nq-fg: hsl(var(--foreground));
+  --nq-soft: hsl(var(--foreground) / .1);
+  --nq-item: hsl(var(--foreground) / .06);
+  --nq-line: hsl(var(--foreground) / .18);
+  --nq-placeholder: hsl(var(--foreground) / .45);
+  --nq-accent: hsl(var(--primary));
+  --nq-accent-fg: #fff;
+  --nq-accent-soft: hsl(var(--primary) / .18);
+  --nq-err: #d6334f;
+  --nq-overlay: hsl(var(--background) / .6);
+  --nq-shadow: 0 8px 28px rgba(0,0,0,.15);
+  --nq-shadow-lg: 0 12px 40px rgba(0,0,0,.18);
+  --nq-focus: hsl(var(--foreground));
+}
+html.dark {
+  --nq-accent-fg: hsl(var(--background));
+  --nq-err: #ff9aa8;
+  --nq-shadow: 0 8px 28px rgba(0,0,0,.35);
+  --nq-shadow-lg: 0 12px 40px rgba(0,0,0,.45);
+}
+#nq-card, #nq-modal .nq-panel, #music-bar, #music-ask, #view-count, .greet-item {
+  transition: opacity .35s, transform .35s, background .3s, color .3s, box-shadow .3s;
 }

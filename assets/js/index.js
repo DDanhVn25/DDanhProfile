@@ -37,22 +37,22 @@ playWelcomeVoice();
 
     function init() {
         var css = document.createElement("style");
-        css.textContent =
-            "#view-count{position:fixed;z-index:2147482990;color:#fff;" +
-            "font:500 13px/1.4 system-ui,'Be Vietnam Pro',sans-serif;" +
-            "background:rgba(20,22,44,.78);backdrop-filter:blur(8px);box-shadow:0 8px 28px rgba(0,0,0,.3);" +
-            "top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:6px 12px;border-radius:999px}" +
-            "#view-count[hidden]{display:none}" +
-            "#greet-stack{position:fixed;z-index:2147482990;top:calc(16px + env(safe-area-inset-top,0px));" +
-            "left:50%;transform:translateX(-50%);width:min(360px,calc(100vw - 32px));" +
-            "display:flex;flex-direction:column;gap:8px;pointer-events:none}" +
-            ".greet-item{padding:11px 16px;border-radius:14px;color:#fff;" +
-            "font:500 14px/1.45 system-ui,'Be Vietnam Pro',sans-serif;" +
-            "background:rgba(20,22,44,.88);backdrop-filter:blur(8px);box-shadow:0 8px 28px rgba(0,0,0,.3);" +
-            "opacity:0;transform:translateY(-10px);transition:opacity .35s,transform .35s}" +
-            ".greet-item.show{opacity:1;transform:none}" +
-            ".greet-item.first{font-weight:700;font-size:15px}" +
-            "@media (prefers-reduced-motion:reduce){.greet-item{transition:none}}";
+    css.textContent =
+        "#view-count{position:fixed;z-index:2147482990;color:var(--nq-fg);" +
+        "font:500 13px/1.4 system-ui,'Be Vietnam Pro',sans-serif;" +
+        "background:var(--nq-pill);backdrop-filter:blur(8px);box-shadow:var(--nq-shadow);" +
+        "top:calc(12px + env(safe-area-inset-top,0px));left:12px;padding:6px 12px;border-radius:999px}" +
+        "#view-count[hidden]{display:none}" +
+        "#greet-stack{position:fixed;z-index:2147482990;top:calc(16px + env(safe-area-inset-top,0px));" +
+        "left:50%;transform:translateX(-50%);width:min(360px,calc(100vw - 32px));" +
+        "display:flex;flex-direction:column;gap:8px;pointer-events:none}" +
+        ".greet-item{padding:11px 16px;border-radius:14px;color:var(--nq-fg);" +
+        "font:500 14px/1.45 system-ui,'Be Vietnam Pro',sans-serif;" +
+        "background:var(--nq-bg);backdrop-filter:blur(8px);box-shadow:var(--nq-shadow);" +
+        "opacity:0;transform:translateY(-10px);transition:opacity .35s,transform .35s}" +
+        ".greet-item.show{opacity:1;transform:none}" +
+        ".greet-item.first{font-weight:700;font-size:15px}" +
+        "@media (prefers-reduced-motion:reduce){.greet-item{transition:none}}";
         document.head.appendChild(css);
 
         // ---------- ĐẾM LƯỢT XEM ----------
@@ -250,8 +250,8 @@ playWelcomeVoice();
         // ----- GIAO DIỆN -----
         const css = document.createElement("style");
         css.textContent = `
-        #music-bar,#music-ask{font:500 14px/1.4 system-ui,"Be Vietnam Pro",sans-serif;color:#fff;
-          background:rgba(20,22,44,.92);backdrop-filter:blur(10px);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+        #music-bar,#music-ask{font:500 14px/1.4 system-ui,"Be Vietnam Pro",sans-serif;color:var(--nq-fg);
+          background:var(--nq-bar);backdrop-filter:blur(10px);box-shadow:var(--nq-shadow-lg)}
         #music-bar{position:fixed;left:50%;transform:translateX(-50%);
           bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:2147482999;
           width:min(580px,calc(100vw - 24px));padding:10px 14px 12px;border-radius:18px}
@@ -260,11 +260,11 @@ playWelcomeVoice();
           overflow:hidden;text-overflow:ellipsis}
         #music-bar .mb-row{display:flex;align-items:center;gap:8px}
         #music-bar button{flex:none;width:36px;height:36px;border:0;border-radius:50%;cursor:pointer;
-          background:rgba(255,255,255,.12);color:#fff;font-size:15px;line-height:1}
-        #music-bar .mb-play{background:#b9a7ff;color:#161233;font-size:16px}
+          background:var(--nq-soft);color:var(--nq-fg);font-size:15px;line-height:1}
+        #music-bar .mb-play{background:var(--nq-accent);color:var(--nq-accent-fg);font-size:16px}
         #music-bar .mb-time{flex:none;font-size:12px;opacity:.75;min-width:34px;text-align:center;
           font-variant-numeric:tabular-nums}
-        #music-bar input[type=range]{min-width:0;height:4px;accent-color:#b9a7ff;cursor:pointer}
+        #music-bar input[type=range]{min-width:0;height:4px;accent-color:var(--nq-accent);cursor:pointer}
         #music-bar .mb-seek{flex:1}
         #music-bar .mb-vol{flex:none;width:80px}
         #music-ask{position:fixed;left:50%;bottom:calc(104px + env(safe-area-inset-bottom,0px));
@@ -274,10 +274,10 @@ playWelcomeVoice();
         #music-ask p{margin:0 0 10px}
         #music-ask .ma-row{display:flex;gap:8px}
         #music-ask button{flex:1;border:0;border-radius:10px;padding:9px 10px;font:inherit;font-weight:700;cursor:pointer}
-        #music-ask .ma-yes{background:#b9a7ff;color:#161233}
-        #music-ask .ma-no{background:rgba(255,255,255,.12);color:#fff}
+        #music-ask .ma-yes{background:var(--nq-accent);color:var(--nq-accent-fg)}
+        #music-ask .ma-no{background:var(--nq-soft);color:var(--nq-fg)}
         #music-bar button:focus-visible,#music-ask button:focus-visible,#music-bar input:focus-visible{
-          outline:3px solid #fff;outline-offset:2px}
+          outline:3px solid var(--nq-focus);outline-offset:2px}
         @media (max-width:560px){#music-bar .mb-vol{display:none}}
         @media (prefers-reduced-motion:reduce){#music-ask{transition:none}}`;
         document.head.appendChild(css);
