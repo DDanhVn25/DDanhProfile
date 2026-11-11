@@ -230,12 +230,35 @@ playWelcomeVoice();
         // ----- DANH SÁCH NHẠC (chỉ thêm bài có link thật) -----
         const playlist = [
             { title: "Em Ngốc Quá - đanh", url: "https://files.catbox.moe/mo7md7.wav" },
+
             { title: "Có Anh Ở Đây Rồi - đanh", url: "https://files.catbox.moe/gb6pd7.wav" },
+
             { title: "Vở Kịch Của Em ft Vây Giữ Remix - đanh", url: "https://files.catbox.moe/0e12ao.wav" },
+
             { title: "Lời yêu ngây dại REMIX - đanh", url: "https://files.catbox.moe/4vkl49.wav" },
+
             { title: "Để Em Lương Thiện - đanh", url: "https://files.catbox.moe/dba3aq.wav" },
+
             { title: "Chúng Ta Không Thuộc Về Nhau - đanh", url: "https://files.catbox.moe/jjdit0.wav" },
+
             { title: "Gia Nhu Anh La Em - đanh", url: "https://files.catbox.moe/rxc2jn.mp3" },
+
+            { title: "HISSTORY - đanh", url: "https://files.catbox.moe/4an00x.mp3" },
+
+            { title: " Yêu Em Rất Nhiều - đanh", url: "https://files.catbox.moe/iefwr8.mp3" },
+            
+            { title: " Nỏ Nhớ Tên Nhạc :)) ", url: "https://files.catbox.moe/kcq2dn.mp3" },
+
+            { title: " Đừng Quên Tên Anh - đanh ", url: "https://files.catbox.moe/oe1xvu.mp3" },
+
+            { title: " Bông Hoa Đẹp Nhất - đanh ", url: "https://files.catbox.moe/z6koa7.mp3" },
+
+            { title: " Bóng Phù Hoa Siêu Cháy - đanh ", url: "https://files.catbox.moe/326yg1.mp3" },
+
+            { title: " Bóng Phù Hoa Siêu Cháy - đanh ", url: "https://files.catbox.moe/326yg1.mp3" },
+
+            { title: " Ngày Nào Đôi Mươi - đanh ", url: "https://files.catbox.moe/oxbqzw.mp3" },
+
             // Thêm bài khác theo mẫu:
             // { title: "Tên bài", url: "./assets/music/ten-bai.wav" },
         ].filter(s => s.url && s.url.trim() !== "");
@@ -452,7 +475,7 @@ playWelcomeVoice();
 
     let o = 0;
     $("body").append(`<div id="fui-toast"></div><div class="td-lock-screen"><section class="td-welcome"><div class="medias"><video class="pc item_video" autoplay loop muted playsinline><source src="./assets/video/pc.mp4?v=${c()}" type="video/mp4"></video><video class="mobile item_video" autoplay loop muted playsinline><source src="./assets/video/mb.mp4?v=${c()}" type="video/mp4"></video><div class="date"></div></div><div class="infos"><div class="logo-web-title">
-<img class="logo-ws" src="https://i.pinimg.com/736x/57/6b/36/576b3663dd1c05ff16655ecd0c95217b.jpg" alt="Arom">
+<img class="logo-ws" src="https://cdn.upanhlaylink.com/i/3BmbgyZf.png" alt="Arom">
 <span class="web-title">${$("html").attr("data-title-loader") || "M\xe0n H\xecnh Kho\xe1"}</span></div><span class="web_desc"></span><div><i class="ri-arrow-down-line close-lockscreen"></i></div></div></section></div>`);
     let a = (n, t) => Math.floor(Math.random() * (t - n + 1)) + n
       , s = n => {
